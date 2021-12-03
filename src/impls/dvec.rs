@@ -99,3 +99,10 @@ impl<T: Field + Clone + Default> VectorMut for DVector<T> {
         }
     }
 }
+
+// From Impls
+impl<T, F: Into<Box<[T]>>> From<F> for DVector<T> {
+    fn from(b: F) -> Self {
+        Self(b.into())
+    }
+}

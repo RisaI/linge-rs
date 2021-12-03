@@ -60,6 +60,46 @@ where
     {
         self.cnorm_sqr().sqrt()
     }
+
+    /// # Euclidean bilinear dot product
+    fn dot_euclid<V>(&self, rhs: &V) -> Self::Elem
+    where
+        Self::Elem: Field + Clone,
+        V: Vector<Elem = Self::Elem>
+    {
+        let mut acc = Self::Elem::zero();
+
+        for i in 0..self.dim().min(rhs.dim()) {
+            match (self.get(i), rhs.get(i)) {
+                (Some(l), Some(r)) => {
+                    acc += l.clone() * r.clone();
+                },
+                _ => { /* noop */ }
+            }
+        }
+
+        acc
+    }
+
+    /// # Euclidean sesquilinear dot product
+    fn cdot_euclid<V>(&self, rhs: &V) -> Self::Elem
+    where
+        Self::Elem: ComplexField + Clone,
+        V: Vector<Elem = Self::Elem>
+    {
+        let mut acc = Self::Elem::zero();
+
+        for i in 0..self.dim().min(rhs.dim()) {
+            match (self.get(i), rhs.get(i)) {
+                (Some(l), Some(r)) => {
+                    acc += l.clone().conjugate() * r.clone();
+                },
+                _ => { /* noop */ }
+            }
+        }
+
+        acc
+    }
 }
 
 pub trait VectorMut
