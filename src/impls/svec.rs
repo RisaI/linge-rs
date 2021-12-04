@@ -2,12 +2,11 @@ use std::ops::{Index, IndexMut, Neg, Mul, MulAssign, Add, AddAssign};
 
 use crate::{traits::{Vector, VectorMut}, Field};
 
-/// # Dynamic Vector<T>
-/// A dynamically sized vector with arbitrary element type
+/// # Static Vector<T>
 #[derive(Clone)]
-pub struct DVector<T>(Box<[T]>);
+pub struct SVector<T, const DIM: usize>([T; DIM]);
 
-impl<T> Index<usize> for DVector<T> {
+impl<T, const DIM: usize> Index<usize> for SVector<T, DIM> {
     type Output = T;
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -15,13 +14,13 @@ impl<T> Index<usize> for DVector<T> {
     }
 }
 
-impl<T> IndexMut<usize> for DVector<T> {
+impl<T, const DIM: usize> IndexMut<usize> for SVector<T, DIM> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.0[index]
     }
 }
 
-impl<T: Field + Clone> Neg for DVector<T> {
+impl<T: Field + Clone, const DIM: usize> Neg for SVector<T, DIM> {
     type Output = Self;
 
     fn neg(mut self) -> Self::Output {
@@ -34,7 +33,7 @@ impl<T: Field + Clone> Neg for DVector<T> {
     }
 }
 
-impl<T: Field + Clone> MulAssign<T> for DVector<T> {
+impl<T: Field + Clone, const DIM: usize> MulAssign<T> for SVector<T, DIM> {
     fn mul_assign(&mut self, rhs: T) {
         self.0.iter_mut()
             .for_each(|v| {
@@ -43,7 +42,7 @@ impl<T: Field + Clone> MulAssign<T> for DVector<T> {
     }
 }
 
-impl<T: Field + Clone> Mul<T> for DVector<T> {
+impl<T: Field + Clone, const DIM: usize> Mul<T> for SVector<T, DIM> {
     type Output = Self;
 
     fn mul(mut self, rhs: T) -> Self::Output {
@@ -53,8 +52,8 @@ impl<T: Field + Clone> Mul<T> for DVector<T> {
     }
 }
 
-impl<'a, T: Field + Clone> AddAssign<&'a DVector<T>> for DVector<T> {
-    fn add_assign(&mut self, rhs: &'a DVector<T>) {
+impl<'a, T: Field + Clone, const DIM: usize> AddAssign<&'a SVector<T, DIM>> for SVector<T, DIM> {
+    fn add_assign(&mut self, rhs: &'a SVector<T, DIM>) {
         self.0.iter_mut()
             .zip(rhs.0.iter())
             .for_each(|(l, r)| {
@@ -63,28 +62,30 @@ impl<'a, T: Field + Clone> AddAssign<&'a DVector<T>> for DVector<T> {
     }
 }
 
-impl<'a, T: Field + Clone> Add<&'a DVector<T>> for DVector<T> {
+impl<'a, T: Field + Clone, const DIM: usize> Add<&'a SVector<T, DIM>> for SVector<T, DIM> {
     type Output = Self;
 
-    fn add(mut self, rhs: &'a DVector<T>) -> Self::Output {
+    fn add(mut self, rhs: &'a SVector<T, DIM>) -> Self::Output {
         self += rhs;
         self
     }
 }
 
-impl<T: Field + Clone + Default> Vector for DVector<T> {
+impl<T: Field + Copy + Default, const DIM: usize> Vector for SVector<T, DIM> {
     type Elem = T;
 
     fn zero_vec(dim: usize) -> Self {
-        DVector(vec![T::default(); dim].into_boxed_slice())
+        // ! this must go
+        assert_eq!(dim, DIM);
+        Self([T::default(); DIM])
     }
 
     fn dim(&self) -> usize {
-        self.0.len()
+        DIM
     }
 
     fn get(&self, i: usize) -> Option<&Self::Elem> {
-        if i >= self.dim() {
+        if i >= DIM {
             None
         } else {
             Some(&self[i])
@@ -92,25 +93,12 @@ impl<T: Field + Clone + Default> Vector for DVector<T> {
     }
 }
 
-impl<T: Field + Clone + Default> VectorMut for DVector<T> {
+impl<T: Field + Copy + Default, const DIM: usize> VectorMut for SVector<T, DIM> {
     fn get_mut(&mut self, i: usize) -> Option<&mut Self::Elem> {
-        if i >= self.dim() {
+        if i >= DIM {
             None
         } else {
             Some(&mut self.0[i])
         }
-    }
-}
-
-// From Impls
-impl<T, F: Into<Box<[T]>>> From<F> for DVector<T> {
-    fn from(b: F) -> Self {
-        Self(b.into())
-    }
-}
-
-impl<T> FromIterator<T> for DVector<T> {
-    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
-        Self(iter.into_iter().collect())
     }
 }

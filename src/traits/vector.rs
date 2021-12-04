@@ -4,6 +4,7 @@ use simba::scalar::{ComplexField, Field};
 use num_traits::identities::Zero;
 
 use super::{Matrix, MatrixMut};
+// use pre::pre;
 
 pub trait Vector
 where
@@ -17,6 +18,7 @@ where
 
     fn get(&self, i: usize) -> Option<&Self::Elem>;
 
+    /// # Ordinary vector norm squared
     fn norm_sqr(&self) -> Self::Elem
     where
         Self::Elem: Field + Clone
@@ -32,6 +34,7 @@ where
         acc
     }
 
+    /// # Ordinary vector norm
     fn norm(&self) -> Self::Elem
     where
         Self::Elem: ComplexField + Clone
@@ -39,6 +42,7 @@ where
         self.norm_sqr().sqrt()
     }
 
+    /// # Complex vector norm squared
     fn cnorm_sqr(&self) -> <Self::Elem as ComplexField>::RealField
     where
         Self::Elem: ComplexField + Clone
@@ -54,6 +58,7 @@ where
         acc
     }
 
+    /// # Complex vector norm
     fn cnorm(&self) -> <Self::Elem as ComplexField>::RealField
     where
         Self::Elem: ComplexField + Clone
@@ -62,6 +67,10 @@ where
     }
 
     /// # Euclidean bilinear dot product
+    /// ## Preconditions
+    /// A single non-panicing assertion, will truncate the product if not met:
+    /// * `self` and `rhs` should have the same dim
+    // #[pre("`self` and `rhs` should have the same dim")]
     fn dot_euclid<V>(&self, rhs: &V) -> Self::Elem
     where
         Self::Elem: Field + Clone,
@@ -70,11 +79,8 @@ where
         let mut acc = Self::Elem::zero();
 
         for i in 0..self.dim().min(rhs.dim()) {
-            match (self.get(i), rhs.get(i)) {
-                (Some(l), Some(r)) => {
-                    acc += l.clone() * r.clone();
-                },
-                _ => { /* noop */ }
+            if let (Some(l), Some(r)) = (self.get(i), rhs.get(i)) {
+                acc += l.clone() * r.clone();
             }
         }
 
@@ -82,6 +88,7 @@ where
     }
 
     /// # Euclidean sesquilinear dot product
+    // #[pre("`self` and `rhs` should have the same dim")]
     fn cdot_euclid<V>(&self, rhs: &V) -> Self::Elem
     where
         Self::Elem: ComplexField + Clone,
@@ -90,11 +97,8 @@ where
         let mut acc = Self::Elem::zero();
 
         for i in 0..self.dim().min(rhs.dim()) {
-            match (self.get(i), rhs.get(i)) {
-                (Some(l), Some(r)) => {
-                    acc += l.clone().conjugate() * r.clone();
-                },
-                _ => { /* noop */ }
+            if let (Some(l), Some(r)) = (self.get(i), rhs.get(i)) {
+                acc += l.clone().conjugate() * r.clone();
             }
         }
 
@@ -120,7 +124,7 @@ where
     }
 
     fn nrows(&self) -> usize {
-        Self::dim(&self)
+        Self::dim(self)
     }
 
     fn ncols(&self) -> usize {
