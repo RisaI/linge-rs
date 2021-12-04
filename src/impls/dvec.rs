@@ -2,6 +2,8 @@ use std::ops::{Index, IndexMut, Neg, Mul, MulAssign, Add, AddAssign};
 
 use crate::{traits::{Vector, VectorMut}, Field};
 
+/// # Dynamic Vector<T>
+/// A dynamically sized vector with arbitrary element type
 #[derive(Clone)]
 pub struct DVector<T>(Box<[T]>);
 

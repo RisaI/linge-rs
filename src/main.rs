@@ -1,9 +1,11 @@
-use linge_rs::traits::Vector;
+use lingers::{prelude::*};
 
 fn main() {
-    println!("Hello, world!");
+    let a: DVector<f64> = vec![ 1., 0., 1. ].into();
+    let b: DVector<f64> = vec![ 1.; 3 ].into();
 
-    let b = linge_rs::impls::DVector::<f64>::zero_vec(10);
-
-    println!("{}", b.cnorm());
+    println!("{}", a.dot_euclid(&b));
+    println!("{}", (a + &b).norm());
 }
+
+

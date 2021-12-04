@@ -2,6 +2,7 @@ pub mod traits;
 pub mod impls;
 pub mod precond;
 pub mod solvers;
+pub mod macros;
 
 // Fields
 pub use simba::{scalar::Field, scalar::RealField, scalar::ComplexField};
