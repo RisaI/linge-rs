@@ -2,7 +2,7 @@ use std::ops::{Index, IndexMut, Neg, Mul, MulAssign, Add, AddAssign};
 
 use crate::{traits::{Vector, VectorMut}, Field};
 
-use super::DVector;
+use super::{DVector, SMatrix};
 
 /// # Static Vector<T>
 #[derive(Clone)]
@@ -144,5 +144,11 @@ impl<T: Field, F: Into<[T; DIM]>, const DIM: usize> From<F> for SVector<T, DIM> 
 impl<T: Field, const DIM: usize> Into<DVector<T>> for SVector<T, DIM> {
     fn into(self) -> DVector<T> {
         self.0.into()
+    }
+}
+
+impl<T: Field, const DIM: usize> SVector<T, DIM> {
+    pub fn into_smat(self) -> SMatrix<T, DIM, 1> {
+        [ self ].into()
     }
 }

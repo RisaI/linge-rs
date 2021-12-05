@@ -75,3 +75,10 @@ where
 {
     type Output: Vector;
 }
+
+pub trait MatMatMul<Rhs: Matrix>
+where
+    for<'a,'b> &'a Self: Mul<&'b Rhs, Output = Self::Output>
+{
+    type Output: Vector;
+}

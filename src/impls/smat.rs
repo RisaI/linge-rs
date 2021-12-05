@@ -2,6 +2,7 @@ use std::ops::{Index, IndexMut, Neg, Mul, MulAssign, Add, AddAssign};
 
 use crate::{traits::{Matrix, MatrixMut}, Field};
 
+use num_traits::Zero;
 use replace_with::replace_with_or_abort;
 
 use super::SVector;
@@ -115,9 +116,26 @@ impl<T: Field + Clone + Sized, const ROWS: usize, const COLS: usize> MatrixMut f
 
 // ANCHOR From impls
 
-impl<T: Field + Sized, F: Into<[[T; ROWS]; COLS]>, const ROWS: usize, const COLS: usize> From<F> for SMatrix<T, ROWS, COLS> {
-    fn from(b: F) -> Self {
-        Self(b.into().map(|col| col.into()))
+impl<T: Field + Sized, const ROWS: usize, const COLS: usize> From<[[T; COLS]; ROWS]> for SMatrix<T, ROWS, COLS> {
+    fn from(b: [[T; COLS]; ROWS]) -> Self {
+        let mut result = SMatrix([(); COLS].map(|_| SVector::zero()));
+
+        b.into_iter()
+            .flatten()
+            .enumerate()
+            .for_each(|(idx, val)| {
+                result[(idx / COLS, idx % COLS)] = val;
+            });
+        
+        result
+    }
+}
+
+impl<T: Field + Sized, const ROWS: usize, const COLS: usize> From<[SVector<T, ROWS>; COLS]> for SMatrix<T, ROWS, COLS> {
+    fn from(cols: [SVector<T, ROWS>; COLS]) -> Self {
+        Self(
+            cols
+        )
     }
 }
 
@@ -134,5 +152,50 @@ impl<T: Field + Clone + Sized, const ROWS: usize> SMatrix<T, ROWS, 1> {
         match self.0 {
             [ vec ] => vec
         }
+    }
+}
+
+impl<T: Clone + Sized, const ROWS: usize, const COLS: usize> SMatrix<T, ROWS, COLS> {
+    pub fn clone_col(&self, col: usize) -> Option<SVector<T, ROWS>> {
+        if col >= COLS {
+            None
+        } else {
+            Some(self.0[col].clone())
+        }
+    }
+
+    pub fn get_col(&self, col: usize) ->  Option<&SVector<T, ROWS>> {
+        if col >= COLS {
+            None
+        } else {
+            Some(&self.0[col])
+        }
+    }
+}
+
+impl<'a, 'b, T: Field + Clone, const ROWS: usize, const COLS: usize, const TCOLS: usize> Mul<&'a SMatrix<T, COLS, TCOLS>> for &'b SMatrix<T, ROWS, COLS> {
+    type Output = SMatrix<T, ROWS, TCOLS>;
+
+    fn mul(self, rhs: &'a SMatrix<T, COLS, TCOLS>) -> Self::Output {
+        let mut col: usize = 0;
+
+        [(); TCOLS]
+            .map(|_| {
+                col += 1;
+                self * rhs.get_col(col - 1).unwrap()
+            })
+            .into()
+    }
+}
+
+impl<'a, 'b, T: Field + Clone, const ROWS: usize, const COLS: usize> Mul<&'a SVector<T, COLS>> for &'b SMatrix<T, ROWS, COLS> {
+    type Output = SVector<T, ROWS>;
+
+    fn mul(self, rhs: &'a SVector<T, COLS>) -> Self::Output {
+        let mut output = SVector::zero();
+
+        // TODO:
+
+        output
     }
 }
