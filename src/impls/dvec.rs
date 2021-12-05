@@ -1,5 +1,7 @@
 use std::ops::{Index, IndexMut, Neg, Mul, MulAssign, Add, AddAssign};
 
+use replace_with::replace_with_or_abort;
+
 use crate::{traits::{Vector, VectorMut}, Field};
 
 /// # Dynamic Vector<T>
@@ -21,13 +23,13 @@ impl<T> IndexMut<usize> for DVector<T> {
     }
 }
 
-impl<T: Field + Clone> Neg for DVector<T> {
+impl<T: Field> Neg for DVector<T> {
     type Output = Self;
 
     fn neg(mut self) -> Self::Output {
         self.0.iter_mut()
             .for_each(|v| {
-                *v = v.clone().neg();
+                replace_with_or_abort(v, |val| val.neg());
             });
 
         self
@@ -72,12 +74,8 @@ impl<'a, T: Field + Clone> Add<&'a DVector<T>> for DVector<T> {
     }
 }
 
-impl<T: Field + Clone + Default> Vector for DVector<T> {
+impl<T: Field + Clone> Vector for DVector<T> {
     type Elem = T;
-
-    fn zero_vec(dim: usize) -> Self {
-        DVector(vec![T::default(); dim].into_boxed_slice())
-    }
 
     fn dim(&self) -> usize {
         self.0.len()
@@ -92,7 +90,7 @@ impl<T: Field + Clone + Default> Vector for DVector<T> {
     }
 }
 
-impl<T: Field + Clone + Default> VectorMut for DVector<T> {
+impl<T: Field + Clone> VectorMut for DVector<T> {
     fn get_mut(&mut self, i: usize) -> Option<&mut Self::Elem> {
         if i >= self.dim() {
             None

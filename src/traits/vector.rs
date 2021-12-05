@@ -12,8 +12,6 @@ where
 {
     type Elem;
 
-    fn zero_vec(dim: usize) -> Self;
-
     fn dim(&self) -> usize;
 
     fn get(&self, i: usize) -> Option<&Self::Elem>;
@@ -118,10 +116,6 @@ where
     T: Vector<Elem = E>,
 {
     type Elem = E;
-
-    fn zero_mat(rows: usize, _cols: usize) -> Self {
-        Self::zero_vec(rows)
-    }
 
     fn nrows(&self) -> usize {
         Self::dim(self)

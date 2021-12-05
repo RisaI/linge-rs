@@ -2,9 +2,13 @@ use std::ops::{Index, IndexMut, Neg, Mul, MulAssign, Add, AddAssign};
 
 use crate::{traits::{Vector, VectorMut}, Field};
 
+use super::DVector;
+
 /// # Static Vector<T>
 #[derive(Clone)]
 pub struct SVector<T, const DIM: usize>([T; DIM]);
+
+// SECTION std::ops impls
 
 impl<T, const DIM: usize> Index<usize> for SVector<T, DIM> {
     type Output = T;
@@ -71,14 +75,12 @@ impl<'a, T: Field + Clone, const DIM: usize> Add<&'a SVector<T, DIM>> for SVecto
     }
 }
 
-impl<T: Field + Copy + Default, const DIM: usize> Vector for SVector<T, DIM> {
-    type Elem = T;
+// !SECTION
 
-    fn zero_vec(dim: usize) -> Self {
-        // ! this must go
-        assert_eq!(dim, DIM);
-        Self([T::default(); DIM])
-    }
+// SECTION Vector impls
+
+impl<T: Field + Clone, const DIM: usize> Vector for SVector<T, DIM> {
+    type Elem = T;
 
     fn dim(&self) -> usize {
         DIM
@@ -93,12 +95,54 @@ impl<T: Field + Copy + Default, const DIM: usize> Vector for SVector<T, DIM> {
     }
 }
 
-impl<T: Field + Copy + Default, const DIM: usize> VectorMut for SVector<T, DIM> {
+impl<T: Field + Clone, const DIM: usize> VectorMut for SVector<T, DIM> {
     fn get_mut(&mut self, i: usize) -> Option<&mut Self::Elem> {
         if i >= DIM {
             None
         } else {
             Some(&mut self.0[i])
         }
+    }
+}
+
+// !SECTION
+
+impl<T: Field, const DIM: usize> Add<SVector<T, DIM>> for SVector<T, DIM> {
+    type Output = Self;
+
+    fn add(mut self, rhs: SVector<T, DIM>) -> Self::Output {
+        self.0.iter_mut()
+            .zip(rhs.0.into_iter())
+            .for_each(|(t, v)| {
+                *t += v;
+            });
+
+        self
+    }
+}
+
+impl<T: Field, const DIM: usize> num_traits::Zero for SVector<T, DIM> {
+    fn zero() -> Self {
+        Self([(); DIM].map(|_| T::zero()))
+    }
+
+    fn is_zero(&self) -> bool {
+        !self.0.iter().any(|e| !e.is_zero())
+    }
+}
+
+// ANCHOR From impls
+
+impl<T: Field, F: Into<[T; DIM]>, const DIM: usize> From<F> for SVector<T, DIM> {
+    fn from(b: F) -> Self {
+        Self(b.into())
+    }
+}
+
+// ANCHOR custom impls
+
+impl<T: Field, const DIM: usize> Into<DVector<T>> for SVector<T, DIM> {
+    fn into(self) -> DVector<T> {
+        self.0.into()
     }
 }
