@@ -6,7 +6,7 @@ use super::DVector;
 
 /// # Static Vector<T>
 #[derive(Clone)]
-pub struct SVector<T, const DIM: usize>([T; DIM]);
+pub struct SVector<T: Sized, const DIM: usize>([T; DIM]);
 
 // SECTION std::ops impls
 
